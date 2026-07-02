@@ -2,6 +2,10 @@
 
 This repositories contains supported extensions.
 
+This Dashchan_2 release branch builds the Dvach extension as
+`io.dashchan2.chan.dvach` and points extension update metadata to
+`andrewpozdnakov7-jpg/Dashchan_2`.
+
 Old extensions are placed under their own specific branch. It's planned to move them all into master branch.
 
 ## Building Guide

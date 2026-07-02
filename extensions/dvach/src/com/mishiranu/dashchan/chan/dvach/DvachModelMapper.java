@@ -1,4 +1,4 @@
-package com.mishiranu.dashchan.chan.dvach;
+package io.dashchan2.chan.dvach;
 
 import android.net.Uri;
 import android.webkit.MimeTypeMap;
