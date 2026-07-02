@@ -13,3 +13,17 @@ android {
 		versionCode 7
 	}
 }
+
+afterEvaluate {
+	def generateManifestTask = tasks.findByName('generateManifest')
+	if (generateManifestTask != null) {
+		generateManifestTask.doLast {
+			def manifestFile = file("$buildDir/generated/AndroidManifest.xml")
+			def manifestText = manifestFile.text
+			manifestText = manifestText
+					.replace('android:label="Dashchan for 2ch.hk"', 'android:label="Dashchan_2 for 2ch"')
+					.replace('android:label="Dashchan"', 'android:label="Dashchan_2"')
+			manifestFile.text = manifestText
+		}
+	}
+}
