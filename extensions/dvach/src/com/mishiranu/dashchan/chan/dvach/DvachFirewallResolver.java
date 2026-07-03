@@ -1,4 +1,4 @@
-package io.dashchan2.chan.dvach;
+package com.mishiranu.dashchan.chan.dvach;
 
 import android.net.Uri;
 import android.util.Pair;

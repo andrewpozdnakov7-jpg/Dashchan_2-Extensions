@@ -1,26 +1,28 @@
-package io.dashchan2.chan.dvach;
+package com.mishiranu.dashchan.chan.dvach;
 
+import android.content.res.Resources;
 import android.util.Pair;
+
 import chan.content.ChanConfiguration;
 import chan.util.CommonUtils;
 import chan.util.StringUtils;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class DvachChanConfiguration extends ChanConfiguration {
-	public static final String CAPTCHA_TYPE_2CH_CAPTCHA = "2ch_captcha";
+	public static final String CAPTCHA_TYPE_2CH_EMOJI_CAPTCHA = "emoji_captcha";
 
 	public static final Map<String, String> CAPTCHA_TYPES;
 
 	static {
 		Map<String, String> captchaTypes = new LinkedHashMap<>();
-		captchaTypes.put(CAPTCHA_TYPE_2CH_CAPTCHA, "2chcaptcha");
-		captchaTypes.put(CAPTCHA_TYPE_RECAPTCHA_2, "recaptcha");
-		captchaTypes.put(CAPTCHA_TYPE_RECAPTCHA_2_INVISIBLE, "invisible_recaptcha");
+		captchaTypes.put(CAPTCHA_TYPE_2CH_EMOJI_CAPTCHA, "emoji");
 		CAPTCHA_TYPES = Collections.unmodifiableMap(captchaTypes);
 	}
 
@@ -32,6 +34,10 @@ public class DvachChanConfiguration extends ChanConfiguration {
 	private static final String KEY_SAGE_ENABLED = "sage_enabled";
 	private static final String KEY_FLAGS_ENABLED = "flags_enabled";
 	private static final String KEY_MAX_COMMENT_LENGTH = "max_comment_length";
+	private static final String KEY_LIKES_ENABLED = "likes_enabled";
+
+	private static final String KEY_CAPTCHA_FULL_KEYBOARD = "captcha_full_keyboard";
+	private static final int CAPTCHA_TTL = 90;
 
 	public DvachChanConfiguration() {
 		request(OPTION_READ_THREAD_PARTIALLY);
@@ -44,6 +50,7 @@ public class DvachChanConfiguration extends ChanConfiguration {
 		for (String captchaType : CAPTCHA_TYPES.keySet()) {
 			addCaptchaType(captchaType);
 		}
+		addCustomPreference(KEY_CAPTCHA_FULL_KEYBOARD, false);
 	}
 
 	@Override
@@ -59,14 +66,17 @@ public class DvachChanConfiguration extends ChanConfiguration {
 
 	@Override
 	public Captcha obtainCustomCaptchaConfiguration(String captchaType) {
-		if (CAPTCHA_TYPE_2CH_CAPTCHA.equals(captchaType)) {
-			Captcha captcha = new Captcha();
-			captcha.title = "2ch Captcha";
-			captcha.input = Captcha.Input.ALL;
-			captcha.validity = Captcha.Validity.IN_THREAD;
-			return captcha;
+		Captcha captcha = new Captcha();
+		switch (captchaType) {
+			case CAPTCHA_TYPE_2CH_EMOJI_CAPTCHA:
+				captcha.title = "Emoji Captcha";
+				captcha.input = Captcha.Input.ALL;
+				captcha.validity = Captcha.Validity.IN_THREAD;
+				captcha.ttl = CAPTCHA_TTL;
+				return captcha;
+			default:
+				return null;
 		}
-		return null;
 	}
 
 	@Override
@@ -159,6 +169,10 @@ public class DvachChanConfiguration extends ChanConfiguration {
 		editBoards(boardName, KEY_SUBJECTS_ENABLED, configuration.subjectsEnabled);
 		editBoards(boardName, KEY_SAGE_ENABLED, configuration.sageEnabled);
 		editBoards(boardName, KEY_FLAGS_ENABLED, configuration.flagsEnabled);
+		editBoards(boardName, KEY_LIKES_ENABLED, configuration.likesEnabled);
+		if (configuration.pagesCount > 0) {
+			storePagesCount(boardName, configuration.pagesCount);
+		}
 		set(boardName, KEY_ICONS, "[]".equals(configuration.icons) ? null : configuration.icons);
 	}
 
@@ -181,4 +195,21 @@ public class DvachChanConfiguration extends ChanConfiguration {
 		}
 		return description;
 	}
+
+	@Override
+	public CustomPreference obtainCustomPreferenceConfiguration(String key) {
+		if (key.equals(KEY_CAPTCHA_FULL_KEYBOARD)) {
+			Resources resources = getResources();
+			String title = resources.getString(R.string.preference_captcha_full_keyboard);
+			CustomPreference captchaFullKeyboardPreference = new CustomPreference();
+			captchaFullKeyboardPreference.title = title;
+			return captchaFullKeyboardPreference;
+		}
+		return null;
+	}
+
+	boolean isFullKeyboardForCaptchaEnabled() {
+		return get(null, KEY_CAPTCHA_FULL_KEYBOARD, false);
+	}
+
 }

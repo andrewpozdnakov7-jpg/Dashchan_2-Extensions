@@ -14,6 +14,7 @@ public class FourchanChanLocator extends ChanLocator {
 	private static final String HOST_BOARDS = "boards.4chan.org";
 	private static final String HOST_BOARDS_SAFE = "boards.4channel.org";
 	private static final String HOST_SYS = "sys.4chan.org";
+	private static final String HOST_SYS_SAFE = "sys.4channel.org";
 	private static final String HOST_API = "a.4cdn.org";
 	private static final String HOST_IMAGES = "i.4cdn.org";
 	private static final String HOST_IMAGES_IS1 = "is.4chan.org";
@@ -33,7 +34,7 @@ public class FourchanChanLocator extends ChanLocator {
 		addSpecialChanHost(HOST_BOARDS);
 		addSpecialChanHost(HOST_BOARDS_SAFE);
 		addSpecialChanHost(HOST_SYS);
-		addSpecialChanHost("sys.4channel.org");
+		addSpecialChanHost(HOST_SYS_SAFE);
 		addSpecialChanHost(HOST_API);
 		addSpecialChanHost(HOST_IMAGES);
 		addSpecialChanHost(HOST_IMAGES_IS1);

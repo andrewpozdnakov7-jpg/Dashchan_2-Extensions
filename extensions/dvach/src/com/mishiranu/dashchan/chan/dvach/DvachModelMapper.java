@@ -1,7 +1,12 @@
-package io.dashchan2.chan.dvach;
+package com.mishiranu.dashchan.chan.dvach;
 
 import android.net.Uri;
-import android.webkit.MimeTypeMap;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import chan.content.model.Attachment;
 import chan.content.model.EmbeddedAttachment;
 import chan.content.model.FileAttachment;
@@ -37,136 +42,119 @@ public class DvachModelMapper {
 	}
 
 	public static class BoardConfiguration {
-		public final String title;
-		public final String description;
-		public final String defaultName;
-		public final int bumpLimit;
-		public final int maxCommentLength;
-		public final String icons;
+		public String title;
+		public String description;
+		public String defaultName;
+		public int bumpLimit;
+		public int maxCommentLength;
+		public int pagesCount;
+		public String icons;
 
-		public final boolean imagesEnabled;
-		public final boolean namesEnabled;
-		public final boolean tripcodesEnabled;
-		public final boolean subjectsEnabled;
-		public final boolean sageEnabled;
-		public final boolean flagsEnabled;
+		public Boolean imagesEnabled;
+		public Boolean namesEnabled;
+		public Boolean tripcodesEnabled;
+		public Boolean subjectsEnabled;
+		public Boolean sageEnabled;
+		public Boolean flagsEnabled;
+		public Boolean likesEnabled;
 
 		@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-		public BoardConfiguration(JsonSerial.Reader reader) throws IOException, ParseException {
-			String title = null;
-			String description = null;
-			String defaultName = null;
-			int bumpLimit = 0;
-			int maxCommentLength = 0;
-			String icons = null;
-			boolean imagesEnabled = false;
-			boolean namesEnabled = false;
-			boolean tripcodesEnabled = false;
-			boolean subjectsEnabled = false;
-			boolean sageEnabled = false;
-			boolean flagsEnabled = false;
-			reader.startObject();
-			while (!reader.endStruct()) {
-				switch (reader.nextName()) {
-					case "name": {
-						title = reader.nextString();
-						break;
+		public boolean handle(JsonSerial.Reader reader, String name) throws IOException, ParseException {
+			switch (name) {
+				case "BoardName": {
+					title = reader.nextString();
+					return true;
+				}
+				case "BoardInfoOuter": {
+					description = reader.nextString();
+					return true;
+				}
+				case "default_name": {
+					defaultName = reader.nextString();
+					return true;
+				}
+				case "bump_limit": {
+					bumpLimit = reader.nextInt();
+					return true;
+				}
+				case "max_comment": {
+					maxCommentLength = reader.nextInt();
+					return true;
+				}
+				case "pages": {
+					int count = 0;
+					reader.startArray();
+					while (!reader.endStruct()) {
+						count++;
+						reader.skip();
 					}
-					case "info": {
-						description = reader.nextString();
-						break;
-					}
-					case "default_name": {
-						defaultName = reader.nextString();
-						break;
-					}
-					case "bump_limit": {
-						bumpLimit = reader.nextInt();
-						break;
-					}
-					case "max_comment": {
-						maxCommentLength = reader.nextInt();
-						break;
-					}
-					case "icons": {
-						try (JsonSerial.Writer writer = JsonSerial.writer()) {
-							writer.startArray();
-							reader.startArray();
-							while (!reader.endStruct()) {
-								reader.startObject();
-								writer.startObject();
-								while (!reader.endStruct()) {
-									switch (reader.nextName()) {
-										case "name": {
-											writer.name("name");
-											writer.value(reader.nextString());
-											break;
-										}
-										case "num": {
-											writer.name("num");
-											writer.value(reader.nextString());
-											break;
-										}
-										default: {
-											reader.skip();
-											break;
-										}
-									}
-								}
-								writer.endObject();
-							}
-							writer.endArray();
-							icons = new String(writer.build());
-						}
-						break;
-					}
-					case "file_types": {
+					pagesCount = count;
+					return true;
+				}
+				case "icons": {
+					try (JsonSerial.Writer writer = JsonSerial.writer()) {
+						writer.startArray();
 						reader.startArray();
 						while (!reader.endStruct()) {
-							String fileType = reader.nextString();
-							String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(fileType);
-							imagesEnabled |= mimeType != null;
+							reader.startObject();
+							writer.startObject();
+							while (!reader.endStruct()) {
+								switch (reader.nextName()) {
+									case "name": {
+										writer.name("name");
+										writer.value(reader.nextString());
+										break;
+									}
+									case "num": {
+										writer.name("num");
+										writer.value(reader.nextString());
+										break;
+									}
+									default: {
+										reader.skip();
+										break;
+									}
+								}
+							}
+							writer.endObject();
 						}
-						break;
+						writer.endArray();
+						icons = new String(writer.build());
 					}
-					case "enable_names": {
-						namesEnabled = reader.nextBoolean();
-						break;
-					}
-					case "enable_trips": {
-						tripcodesEnabled = reader.nextBoolean();
-						break;
-					}
-					case "enable_subject": {
-						subjectsEnabled = reader.nextBoolean();
-						break;
-					}
-					case "enable_sage": {
-						sageEnabled = reader.nextBoolean();
-						break;
-					}
-					case "enable_flags": {
-						flagsEnabled = reader.nextBoolean();
-						break;
-					}
-					default: {
-						reader.skip();
-						break;
-					}
+					return true;
+				}
+				case "enable_images": {
+					imagesEnabled = reader.nextBoolean();
+					return true;
+				}
+				case "enable_names": {
+					namesEnabled = reader.nextBoolean();
+					return true;
+				}
+				case "enable_trips": {
+					tripcodesEnabled = reader.nextBoolean();
+					return true;
+				}
+				case "enable_subject": {
+					subjectsEnabled = reader.nextBoolean();
+					return true;
+				}
+				case "enable_sage": {
+					sageEnabled = reader.nextBoolean();
+					return true;
+				}
+				case "enable_flags": {
+					flagsEnabled = reader.nextBoolean();
+					return true;
+				}
+				case "enable_likes": {
+					likesEnabled = reader.nextBoolean();
+					return true;
+				}
+				default: {
+					return false;
 				}
 			}
-			this.title = title;
-			this.description = description;
-			this.defaultName = defaultName;
-			this.bumpLimit = bumpLimit;
-			this.maxCommentLength = maxCommentLength;
-			this.icons = icons;
-			this.imagesEnabled = imagesEnabled;
-			this.namesEnabled = namesEnabled;
-			this.tripcodesEnabled = tripcodesEnabled;
-			this.subjectsEnabled = subjectsEnabled;
-			this.sageEnabled = sageEnabled;
-			this.flagsEnabled = flagsEnabled;
 		}
 	}
 
@@ -241,6 +229,8 @@ public class DvachModelMapper {
 		String name = null;
 		String tripcode = null;
 		ArrayList<Icon> icons = null;
+		int likes = 0;
+		int dislikes = 0;
 
 		reader.startObject();
 		while (!reader.endStruct()) {
@@ -404,6 +394,14 @@ public class DvachModelMapper {
 					}
 					break;
 				}
+				case "likes": {
+					likes = reader.nextInt();
+					break;
+				}
+				case "dislikes": {
+					dislikes = reader.nextInt();
+					break;
+				}
 				default: {
 					reader.skip();
 					break;
@@ -533,6 +531,19 @@ public class DvachModelMapper {
 		if (archiveDate != null && !posts.isEmpty()) {
 			posts.get(0).setArchived(true);
 		}
+		return posts;
+	}
+
+	public static List<String> createPostsFromHtml(String html) {
+
+		List<String> posts = new ArrayList<>();
+		Document doc = Jsoup.parse(html);
+		Elements elements = doc.select("div.box");
+
+		for (Element el : elements) {
+			posts.add(el.id().split("post-")[1]);
+		}
+
 		return posts;
 	}
 

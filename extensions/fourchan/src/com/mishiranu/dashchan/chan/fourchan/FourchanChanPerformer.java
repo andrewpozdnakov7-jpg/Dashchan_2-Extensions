@@ -55,6 +55,12 @@ public class FourchanChanPerformer extends ChanPerformer {
 
 	private final HashMap<String, Long> lastRulesUpdate = new HashMap<>();
 
+    private final HttpRequest.RedirectHandler unsafeRedirectHandler =
+            new HttpRequestUnsafeRedirectHandler();
+
+    private final HttpRequest.RedirectHandler strictUnsafeRedirectHandler =
+            new HttpRequestUnsafeRedirectHandler(HttpRequest.RedirectHandler.STRICT);
+
 	private void updateBoardRules(HttpRequest.Preset preset,
 			String boardName, List<Posts> threads) throws HttpException {
 		Long update;
@@ -76,7 +82,10 @@ public class FourchanChanPerformer extends ChanPerformer {
 			FourchanChanLocator locator = FourchanChanLocator.get(this);
 			Uri uri = locator.createSysUri(boardName, "imgboard.php").buildUpon()
 					.appendQueryParameter("mode", "report").appendQueryParameter("no", postNumber).build();
-			response = new HttpRequest(uri, preset).setSuccessOnly(false).perform();
+			response = new HttpRequest(uri, preset)
+                    .setSuccessOnly(false)
+					.setRedirectHandler(unsafeRedirectHandler)
+                    .perform();
 		}
 		List<ReportReason> reportReasons = Collections.emptyList();
 		if (response != null) {
@@ -104,7 +113,10 @@ public class FourchanChanPerformer extends ChanPerformer {
 		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
 		Uri uri = locator.createApiUri(data.boardName, (data.isCatalog() ? "catalog"
 				: Integer.toString(data.pageNumber + 1)) + ".json");
-		HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator).perform();
+		HttpResponse response = new HttpRequest(uri, data)
+                .setValidator(data.validator)
+                .setRedirectHandler(unsafeRedirectHandler)
+                .perform();
 		HttpValidator validator = response.getValidator();
 		ArrayList<Posts> threads = new ArrayList<>();
 		boolean handleMathTags = configuration.isMathTagsHandlingEnabled();
@@ -167,13 +179,17 @@ public class FourchanChanPerformer extends ChanPerformer {
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
 		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
 		boolean handleMathTags = configuration.isMathTagsHandlingEnabled();
-		boolean tail = data.partialThreadLoading && data.lastPostNumber != null;
+		boolean tail = ThreadsWithTailCache.INSTANCE.contains(data.threadNumber) &&
+				data.partialThreadLoading && data.lastPostNumber != null;
 		ArrayList<Post> posts = new ArrayList<>();
 		int uniquePosters = 0;
 		if (tail) {
 			Uri uri = locator.createApiUri(data.boardName, "thread", data.threadNumber + "-tail.json");
-			HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator)
-					.setSuccessOnly(false).perform();
+			HttpResponse response = new HttpRequest(uri, data)
+                    .setValidator(data.validator)
+					.setSuccessOnly(false)
+                    .setRedirectHandler(unsafeRedirectHandler)
+                    .perform();
 			if (response.getResponseCode() == HttpURLConnection.HTTP_OK) {
 				TRY: try (InputStream input = response.open();
 						JsonSerial.Reader reader = JsonSerial.reader(input)) {
@@ -226,7 +242,10 @@ public class FourchanChanPerformer extends ChanPerformer {
 			}
 		}
 		Uri uri = locator.createApiUri(data.boardName, "thread", data.threadNumber + ".json");
-		HttpResponse response = new HttpRequest(uri, data).setValidator(data.validator).perform();
+		HttpResponse response = new HttpRequest(uri, data)
+                .setValidator(data.validator)
+                .setRedirectHandler(unsafeRedirectHandler)
+                .perform();
 		try (InputStream input = response.open();
 				JsonSerial.Reader reader = JsonSerial.reader(input)) {
 			reader.startObject();
@@ -268,7 +287,9 @@ public class FourchanChanPerformer extends ChanPerformer {
 		boolean handleMathTags = configuration.isMathTagsHandlingEnabled();
 		Uri uri = locator.createSearchApiUri("b", data.boardName, "q", data.searchQuery,
 				"o", Integer.toString(10 * data.pageNumber));
-		HttpResponse response = new HttpRequest(uri, data).perform();
+		HttpResponse response = new HttpRequest(uri, data)
+                .setRedirectHandler(unsafeRedirectHandler)
+                .perform();
 		Locale locale = Locale.US;
 		String lowerSearchQuery = data.searchQuery.toLowerCase(locale);
 		try (InputStream input = response.open();
@@ -331,7 +352,9 @@ public class FourchanChanPerformer extends ChanPerformer {
 	public ReadBoardsResult onReadBoards(ReadBoardsData data) throws HttpException, InvalidResponseException {
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
 		Uri uri = locator.buildPath();
-		HttpResponse response = new HttpRequest(uri, data).perform();
+		HttpResponse response = new HttpRequest(uri, data)
+                .setRedirectHandler(unsafeRedirectHandler)
+                .perform();
 		Map<String, List<String>> categoryMap;
 		try (InputStream input = response.open()) {
 			categoryMap = new FourchanBoardsParser(this).parse(input);
@@ -354,7 +377,9 @@ public class FourchanChanPerformer extends ChanPerformer {
 			}
 		}
 		uri = locator.createApiUri("boards.json");
-		response = new HttpRequest(uri, data).perform();
+		response = new HttpRequest(uri, data)
+                .setRedirectHandler(unsafeRedirectHandler)
+                .perform();
 		try (InputStream input = response.open();
 				JsonSerial.Reader reader = JsonSerial.reader(input)) {
 			reader.startObject();
@@ -406,7 +431,10 @@ public class FourchanChanPerformer extends ChanPerformer {
 		if (data.type == ReadThreadSummariesData.TYPE_ARCHIVED_THREADS) {
 			FourchanChanLocator locator = FourchanChanLocator.get(this);
 			Uri uri = locator.createBoardUri(data.boardName, 0).buildUpon().appendPath("archive").build();
-			String responseText = new HttpRequest(uri, data).perform().readString();
+			String responseText = new HttpRequest(uri, data)
+                    .setRedirectHandler(unsafeRedirectHandler)
+                    .perform()
+                    .readString();
 			ArrayList<ThreadSummary> threadSummaries = new ArrayList<>();
 			Matcher matcher = PATTERN_ARCHIVED_THREAD.matcher(responseText);
 			while (matcher.find()) {
@@ -430,11 +458,19 @@ public class FourchanChanPerformer extends ChanPerformer {
 					"fcolor=000000&mode=0&out=1&remhost=quicklatex.com&preamble=\\usepackage{amsmath}\n" +
 					"\\usepackage{amsfonts}\n\\usepackage{amssymb}");
 			entity.setContentType("application/x-www-form-urlencoded");
-			String responseText = new HttpRequest(uri, data).setPostMethod(entity).perform().readString();
+			String responseText = new HttpRequest(uri, data)
+					.setPostMethod(entity)
+                    .setRedirectHandler(unsafeRedirectHandler)
+                    .perform()
+                    .readString();
 			String[] splitted = responseText.split("\r?\n| ");
 			if (splitted.length >= 2 && "0".equals(splitted[0])) {
 				uri = Uri.parse(splitted[1]);
-				return new ReadContentResult(new HttpRequest(uri, data).perform());
+				return new ReadContentResult(
+                        new HttpRequest(uri, data)
+                        .setRedirectHandler(unsafeRedirectHandler)
+                        .perform()
+                );
 			}
 			throw HttpException.createNotFoundException();
 		}
@@ -479,10 +515,12 @@ public class FourchanChanPerformer extends ChanPerformer {
 		lastCaptchaPassData = null;
 		lastCaptchaPassCookie = null;
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
-		Uri uri = locator.createSysUri("auth");
+		Uri uri = locator.createSysUri(null, "auth");
 		UrlEncodedEntity entity = new UrlEncodedEntity("act", "do_login", "id", token, "pin", pin, "long_login", "yes");
-		HttpResponse response = new HttpRequest(uri, preset).setPostMethod(entity)
-				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform();
+		HttpResponse response = new HttpRequest(uri, preset)
+                .setPostMethod(entity)
+				.setRedirectHandler(strictUnsafeRedirectHandler)
+                .perform();
 		String responseText = response.readString();
 		Matcher matcher = PATTERN_AUTH_MESSAGE.matcher(responseText);
 		if (matcher.find()) {
@@ -559,24 +597,48 @@ public class FourchanChanPerformer extends ChanPerformer {
 			if (threadNumber != null) {
 				builder.appendQueryParameter("thread_id", threadNumber);
 			}
+			String captchaTicket = getCaptchaTicket();
+			if (captchaTicket != null) {
+				builder.appendQueryParameter("ticket", captchaTicket);
+			}
 			Uri uri = builder.build();
 			String challenge;
 			Bitmap image;
 			Bitmap background;
-			int wait = 2000;
+			String fourchanPassCookie = getFourchanPassCookie(configuration, data.boardName);
 			while (true) {
 				try {
-					JSONObject jsonObject = new JSONObject(new HttpRequest(uri, data)
-							.addCookie(COOKIE_FOURCHAN_PASS, configuration.getCookie(COOKIE_FOURCHAN_PASS))
-							.perform().readString());
-					String error = jsonObject.optString("error");
-					if ("You have to wait a while before doing this again".equals(error)) {
-						try {
-							Thread.sleep(wait);
-						} catch (InterruptedException e) {
-							throw new HttpException(0, null);
+					JSONObject jsonObject = new JSONObject(
+                            new HttpRequest(uri, data)
+							.addCookie(COOKIE_FOURCHAN_PASS, fourchanPassCookie)
+							.setRedirectHandler(unsafeRedirectHandler)
+                            .perform()
+							.readString()
+                    );
+					String newCaptchaTicket = jsonObject.optString("ticket");
+					if (!newCaptchaTicket.isEmpty()) {
+						saveCaptchaTicket(newCaptchaTicket);
+					}
+					boolean captchaOnCooldown = "You have to wait a while before doing this again".equals(jsonObject.optString("error"));
+					boolean captchaTicketOnCooldown = !captchaOnCooldown && jsonObject.has("pcd");
+					if (captchaOnCooldown || captchaTicketOnCooldown) {
+						String cooldownFieldName = captchaOnCooldown ? "cd" : "pcd";
+						int cooldownSeconds = jsonObject.optInt(cooldownFieldName, -1);
+						if (cooldownSeconds == -1) throw new HttpException(0, null);
+						int reasonableCooldownWaitSeconds = 10;
+						if (cooldownSeconds <= reasonableCooldownWaitSeconds) {
+							try {
+								/*  The server returns only whole cooldown seconds in the response but it can actually be decimal.
+									For example: the server returns 10 seconds cooldown but in reality it is 10.5 seconds.
+									Add 1 second to the cooldown to avoid this issue.
+								*/
+								Thread.sleep((cooldownSeconds + 1) * 1000L);
+							} catch (InterruptedException e) {
+								throw new HttpException(0, null);
+							}
+						} else {
+							throw new HttpException(0, configuration.getResources().getQuantityString(R.plurals.capthca_cooldown_message__format, cooldownSeconds, cooldownSeconds));
 						}
-						wait += 1000;
 					} else {
 						challenge = jsonObject.getString("challenge");
 						byte[] imageBytes = Base64.decode(jsonObject.getString("img"), 0);
@@ -648,6 +710,18 @@ public class FourchanChanPerformer extends ChanPerformer {
 		return result;
 	}
 
+	private static final String CAPTCHA_TICKET_KEY = "captcha_ticket";
+
+	private void saveCaptchaTicket(String captchaTicket) {
+		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
+		configuration.set(null, CAPTCHA_TICKET_KEY, captchaTicket);
+	}
+
+	private String getCaptchaTicket() {
+		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
+		return configuration.get(null, CAPTCHA_TICKET_KEY, null);
+	}
+
 	private static final SimpleDateFormat DATE_FORMAT_BAN = new SimpleDateFormat("MMMM d yyyy", Locale.US);
 
 	private static long parseBanDate(String value) {
@@ -666,7 +740,10 @@ public class FourchanChanPerformer extends ChanPerformer {
 	private ApiException.BanExtra readBanExtra(HttpRequest.Preset preset, String boardName) throws HttpException {
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
 		Uri uri = locator.buildPath("banned");
-		String responseText = new HttpRequest(uri, preset).perform().readString();
+		String responseText = new HttpRequest(uri, preset)
+				.setRedirectHandler(unsafeRedirectHandler)
+				.perform()
+				.readString();
 		while (responseText.contains(RECAPTCHA_API_KEY)) {
 			CaptchaData captchaData = requireUserCaptcha(REQUIREMENT_BANNED, boardName, null, false);
 			if (captchaData == null) {
@@ -674,7 +751,11 @@ public class FourchanChanPerformer extends ChanPerformer {
 			}
 			MultipartEntity entity = new MultipartEntity();
 			entity.add("g-recaptcha-response", captchaData.get(CaptchaData.INPUT));
-			responseText = new HttpRequest(uri, preset).setPostMethod(entity).perform().readString();
+			responseText = new HttpRequest(uri, preset)
+                    .setPostMethod(entity)
+                    .setRedirectHandler(unsafeRedirectHandler)
+                    .perform()
+                    .readString();
 		}
 		HashMap<String, String> fields = new HashMap<>();
 		for (String name : Arrays.asList("reason", "startDate", "endDate")) {
@@ -702,12 +783,24 @@ public class FourchanChanPerformer extends ChanPerformer {
 				.setExpireDate(parseBanDate(fields.get("endDate")));
 	}
 
-	private void handleFourchanPass(HttpResponse response) {
-		String fourchanPass = response.getCookieValue(COOKIE_FOURCHAN_PASS);
-		if (fourchanPass != null) {
-			FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
-			configuration.storeCookie(COOKIE_FOURCHAN_PASS, fourchanPass, "4chan Pass");
+	private void handleFourchanPass(HttpResponse response, String boardName) {
+		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
+		String fourchanPassCookie = response.getCookieValue(COOKIE_FOURCHAN_PASS);
+		if (fourchanPassCookie != null) {
+			String fourchanPassCookieKey = getFourchanPassCookieStoreKey(configuration, boardName);
+			String displayName = configuration.isSafeForWork(boardName) ? "4channel pass" : "4chan pass";
+			configuration.storeCookie(fourchanPassCookieKey, fourchanPassCookie, displayName);
 		}
+	}
+
+	private String getFourchanPassCookie(FourchanChanConfiguration configuration, String boardName){
+		String fourchanPassCookieKey = getFourchanPassCookieStoreKey(configuration, boardName);
+		return configuration.getCookie(fourchanPassCookieKey);
+	}
+
+	private String getFourchanPassCookieStoreKey(FourchanChanConfiguration configuration, String boardName){
+		String prefix = configuration.isSafeForWork(boardName) ? "4channel" : "4chan";
+		return prefix + "_" + COOKIE_FOURCHAN_PASS;
 	}
 
 	private static final Pattern PATTERN_POST_ERROR = Pattern.compile("<span id=\"errmsg\".*?>(.*?)</span>");
@@ -749,22 +842,21 @@ public class FourchanChanPerformer extends ChanPerformer {
 		}
 
 		FourchanChanLocator locator = FourchanChanLocator.get(this);
-		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
-		boolean nsfwFix = !configuration.isSafeForWork(data.boardName) && configuration.isFixNsfwBoardsEnabled();
 		Uri uri = locator.createSysUri(data.boardName, "post");
-		HttpRequest request = new HttpRequest(uri, data).addCookie(buildCookies(captchaPassCookie))
-				.addCookie(COOKIE_FOURCHAN_PASS, configuration.getCookie(COOKIE_FOURCHAN_PASS));
-		if (nsfwFix) {
-			// More reliable fix: add non-browser User-Agent (breaks CloudFlare bypass)
-			request.addHeader("User-Agent", "curl/7.64.0");
-		} else {
-			// Less reliable fix: works in /b/, doesn't work in /bant/
-			request.addHeader("Accept", "text/html").addHeader("Accept-Language", "en")
-					.addHeader("Referer", uri.toString());
-		}
+		FourchanChanConfiguration configuration = FourchanChanConfiguration.get(this);
+		String fourchanPassCookie = getFourchanPassCookie(configuration, data.boardName);
+		HttpRequest request = new HttpRequest(uri, data)
+				.addCookie(buildCookies(captchaPassCookie))
+				.addCookie(COOKIE_FOURCHAN_PASS, fourchanPassCookie)
+				.addHeader("Sec-Fetch-Dest", "document")
+				.addHeader("Sec-Fetch-Mode", "navigate")
+				.addHeader("Sec-Fetch-Site", "same-site")
+				.addHeader("Sec-Fetch-User", "?1");
+
 		HttpResponse response = request.setPostMethod(entity)
-				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform();
-		handleFourchanPass(response);
+                .setRedirectHandler(strictUnsafeRedirectHandler)
+                .perform();
+		handleFourchanPass(response, data.boardName);
 		String responseText = response.readString();
 
 		Matcher matcher = PATTERN_POST_SUCCESS.matcher(responseText);
@@ -834,7 +926,9 @@ public class FourchanChanPerformer extends ChanPerformer {
 			entity.add("onlyimgdel", "on");
 		}
 		String responseText = new HttpRequest(uri, data).setPostMethod(entity)
-				.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform().readString();
+				.setRedirectHandler(strictUnsafeRedirectHandler)
+                .perform()
+				.readString();
 		Matcher matcher = PATTERN_POST_ERROR.matcher(responseText);
 		if (matcher.find()) {
 			String errorMessage = matcher.group(1);
@@ -893,10 +987,12 @@ public class FourchanChanPerformer extends ChanPerformer {
 			} else if (FourchanChanConfiguration.CAPTCHA_TYPE_RECAPTCHA_2.equals(captchaType)) {
 				entity.add("g-recaptcha-response", captchaData.get(CaptchaData.INPUT));
 			}
+			String fourchanPassCookie = getFourchanPassCookie(configuration, data.boardName);
 			HttpResponse response = new HttpRequest(uri, data).setPostMethod(entity)
-					.addCookie(COOKIE_FOURCHAN_PASS, configuration.getCookie(COOKIE_FOURCHAN_PASS))
-					.setRedirectHandler(HttpRequest.RedirectHandler.STRICT).perform();
-			handleFourchanPass(response);
+					.addCookie(COOKIE_FOURCHAN_PASS, fourchanPassCookie)
+					.setRedirectHandler(strictUnsafeRedirectHandler)
+                    .perform();
+			handleFourchanPass(response, data.boardName);
 			String responseText = response.readString();
 			Matcher matcher = PATTERN_REPORT_MESSAGE.matcher(responseText);
 			if (matcher.find()) {

@@ -1,29 +1,57 @@
 apply plugin: 'chan-extension'
 
 chan {
+	packageName 'com.mishiranu.dashchan.chan.dvach'
+	applicationId 'io.dashchan2.chan.dvach'
 	versionName '1.43-experimental-1.6-r10'
+	versionCode 7
 	apiVersion 1
-	hosts '2ch.hk', '2ch.pm', '2ch.life',
-			'2ch.cm', '2ch.re', '2ch.tf', '2ch.wf', '2ch.yt', '2-ch.so',
-			'beta.2ch.hk'
+	featureName 'chan.extension.dashchan2'
+	applicationLabel 'Dashchan_2 for 2ch'
+	uriHandlerLabel 'Dashchan_2'
+	hosts '2ch.su', '2ch.life', '2ch.hk', '2ch.pm', '2ch.cm', '2ch.re', '2ch.tf', '2ch.wf', '2ch.yt', '2-ch.so'
 }
 
-android {
-	defaultConfig {
-		versionCode 7
+dependencies {
+	implementation 'org.jsoup:jsoup:1.15.2'
+}
+
+def releaseKeystoreProperties = new Properties()
+def releaseKeystoreFile = null
+def releaseKeystorePropertiesFile = file('keystore.properties')
+if (releaseKeystorePropertiesFile.exists()) {
+	releaseKeystorePropertiesFile.newInputStream().withCloseable { releaseKeystoreProperties.load(it) }
+	releaseKeystoreFile = file(releaseKeystoreProperties['store.file'])
+} else {
+	def envKeystoreFile = System.getenv('KEYSTORE_FILENAME')
+	if (envKeystoreFile != null && !envKeystoreFile.isEmpty()) {
+		releaseKeystoreFile = file(envKeystoreFile)
+		releaseKeystoreProperties['store.password'] = System.getenv('KEYSTORE_PASSWORD')
+		releaseKeystoreProperties['key.alias'] = System.getenv('RELEASE_SIGN_KEY_ALIAS')
+		releaseKeystoreProperties['key.password'] = System.getenv('RELEASE_SIGN_KEY_PASSWORD')
 	}
 }
+def hasReleaseSigning = releaseKeystoreFile != null && releaseKeystoreFile.exists() &&
+		releaseKeystoreProperties['store.password'] != null &&
+		releaseKeystoreProperties['key.alias'] != null &&
+		releaseKeystoreProperties['key.password'] != null
 
-afterEvaluate {
-	def generateManifestTask = tasks.findByName('generateManifest')
-	if (generateManifestTask != null) {
-		generateManifestTask.doLast {
-			def manifestFile = file("$buildDir/generated/AndroidManifest.xml")
-			def manifestText = manifestFile.text
-			manifestText = manifestText
-					.replace('android:label="Dashchan for 2ch.hk"', 'android:label="Dashchan_2 for 2ch"')
-					.replace('android:label="Dashchan"', 'android:label="Dashchan_2"')
-			manifestFile.text = manifestText
+android {
+	if (hasReleaseSigning) {
+		signingConfigs {
+			release {
+				storeFile releaseKeystoreFile
+				storePassword releaseKeystoreProperties['store.password']
+				keyAlias releaseKeystoreProperties['key.alias']
+				keyPassword releaseKeystoreProperties['key.password']
+			}
+		}
+	}
+	buildTypes {
+		release {
+			if (hasReleaseSigning) {
+				signingConfig signingConfigs.release
+			}
 		}
 	}
 }

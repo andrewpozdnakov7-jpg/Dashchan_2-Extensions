@@ -1,10 +1,12 @@
-package io.dashchan2.chan.dvach;
+package com.mishiranu.dashchan.chan.dvach;
+
+import java.util.List;
+import java.util.regex.Pattern;
 
 import android.net.Uri;
 import android.util.Pair;
+
 import chan.content.ChanLocator;
-import java.util.List;
-import java.util.regex.Pattern;
 
 public class DvachChanLocator extends ChanLocator {
 	private static final Pattern BOARD_PATH = Pattern.compile("/\\w+(?:/(?:(?:index|catalog|\\d+)\\.html)?)?");
@@ -14,16 +16,17 @@ public class DvachChanLocator extends ChanLocator {
 			+ "src/(\\d+)/\\d+\\.\\w+");
 
 	public DvachChanLocator() {
+		addChanHost("2ch.su");
+		addChanHost("2ch.life");
 		addChanHost("2ch.hk");
 		addChanHost("2ch.pm");
-		addChanHost("2ch.life");
+		addChanHost("beta.2ch.hk");
 		addConvertableChanHost("2ch.cm");
 		addConvertableChanHost("2ch.re");
 		addConvertableChanHost("2ch.tf");
 		addConvertableChanHost("2ch.wf");
 		addConvertableChanHost("2ch.yt");
 		addConvertableChanHost("2-ch.so");
-		addConvertableChanHost("beta.2ch.hk");
 		setHttpsMode(HttpsMode.CONFIGURABLE);
 	}
 
@@ -89,8 +92,19 @@ public class DvachChanLocator extends ChanLocator {
 		return buildPath(newSegments);
 	}
 
-	public Uri createUserApiUri(String name) {
-		return buildQuery("user/" + name, "json", "1");
+	public enum Fcgi {
+		MAKABA("makaba"),
+		POSTING("posting");
+
+		private final String name;
+
+		Fcgi(String name) {
+			this.name = name;
+		}
+	}
+
+	public Uri createFcgiUri(Fcgi fcgi, String... alternation) {
+		return buildQuery("makaba/" + fcgi.name + ".fcgi", alternation);
 	}
 
 	public Uri createCatalogSearchUri(String boardName, String query) {

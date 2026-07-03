@@ -4,6 +4,8 @@
 !/build.gradle
 !/chan.properties
 !/COPYING
+!/keystore.properties.template
+/keystore.properties
 !/engines
 /engines/*/*
 !/engines/*/build.gradle
@@ -12,9 +14,11 @@
 !/extensions
 /extensions/*/*
 !/extensions/*/build.gradle
+!/extensions/*/proguard-rules.pro
 !/extensions/*/res
 !/extensions/*/src
 !/gradle
+!/gradle.properties
 !/gradlew
 !/gradlew.bat
 !/library
