@@ -3,8 +3,8 @@ apply plugin: 'chan-extension'
 chan {
 	packageName 'com.mishiranu.dashchan.chan.dvach'
 	applicationId 'io.dashchan2.chan.dvach'
-	versionName '1.43-experimental-1.6-r10'
-	versionCode 7
+	versionName '1.43-experimental-1.6-r11'
+	versionCode 8
 	apiVersion 1
 	featureName 'chan.extension.dashchan2'
 	applicationLabel 'Dashchan_2 for 2ch'
