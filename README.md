@@ -18,7 +18,7 @@ Dashchan_2 использует отдельный package name и отдель�
 | Package | `io.dashchan2.chan.dvach` |
 | Extension feature | `chan.extension.dashchan2` |
 | Java package | `com.mishiranu.dashchan.chan.dvach` |
-| Версия | `1.43-experimental-1.6-r10`, code `7` |
+| Версия | `1.43-experimental-1.6-r11`, code `8` |
 | Минимальный Android | API 30 / Android 11+ |
 | Update metadata | `//raw.githubusercontent.com/andrewpozdnakov7-jpg/Dashchan_2/master/update/data.json` |
 
@@ -38,6 +38,9 @@ Dashchan_2 использует отдельный package name и отдель�
 - Сборка обновлена до Android Gradle Plugin 9.2.1 и Gradle 9.4.1.
 - В этом репозитории оставлено только расширение Dvach; остальные расширения
   удалены из текущей ветки.
+- Добавлен домен `2ch.org` в locator и Android manifest hosts.
+- Добавлена разметка AI-сгенерированных постов для скрытия в Dashchan_2.
+- Gradle plugin DSL обновлен под современный assignment-синтаксис Gradle 9.
 
 ### Сборка
 
@@ -75,6 +78,10 @@ key.password=%KEY_PASSWORD%
 
 ### Лицензия
 
+Исходники расширения основаны на Dashchan Extensions и включают изменения,
+изученные и адаптированные из `TrixiEther/DashchanFork` /
+`TrixiEther/Dashchan-Library`.
+
 Расширение распространяется по лицензии
 [GNU General Public License, version 3 or later](COPYING).
 
@@ -97,7 +104,7 @@ Contact: `dashchan_2@mail.ru`
 | Package | `io.dashchan2.chan.dvach` |
 | Extension feature | `chan.extension.dashchan2` |
 | Java package | `com.mishiranu.dashchan.chan.dvach` |
-| Version | `1.43-experimental-1.6-r10`, code `7` |
+| Version | `1.43-experimental-1.6-r11`, code `8` |
 | Minimum Android | API 30 / Android 11+ |
 | Update metadata | `//raw.githubusercontent.com/andrewpozdnakov7-jpg/Dashchan_2/master/update/data.json` |
 
@@ -118,6 +125,9 @@ Contact: `dashchan_2@mail.ru`
 - Updated the build stack to Android Gradle Plugin 9.2.1 and Gradle 9.4.1.
 - Kept only the Dvach extension in this repository branch; other extensions
   were removed from the current branch.
+- Added the `2ch.org` domain to the locator and Android manifest hosts.
+- Added AI-generated post marking for hiding in Dashchan_2.
+- Updated the Gradle plugin DSL to the modern Gradle 9 assignment syntax.
 
 ### Building
 
@@ -154,6 +164,10 @@ key.password=%KEY_PASSWORD%
 Do not commit the real `keystore.properties` file or signing keys.
 
 ### License
+
+The extension sources are based on Dashchan Extensions and include changes
+studied and adapted from `TrixiEther/DashchanFork` /
+`TrixiEther/Dashchan-Library`.
 
 The extension is available under the
 [GNU General Public License, version 3 or later](COPYING).
