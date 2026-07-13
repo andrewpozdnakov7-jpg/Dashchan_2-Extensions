@@ -96,6 +96,8 @@ public class DvachChanConfiguration extends ChanConfiguration {
 		posting.attachmentMimeTypes.add("image/*");
 		posting.attachmentMimeTypes.add("video/webm");
 		posting.attachmentMimeTypes.add("video/mp4");
+		// The posting endpoint accepts MOV even though the mobile boards API does not advertise it.
+		posting.attachmentMimeTypes.add("video/quicktime");
 		try {
 			JSONArray jsonArray = new JSONArray(get(boardName, KEY_ICONS, "[]"));
 			for (int i = 0; i < jsonArray.length(); i++) {

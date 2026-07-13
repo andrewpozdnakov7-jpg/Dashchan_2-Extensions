@@ -1,4 +1,0 @@
-[submodule "library"]
-	path = library
-	url = https://github.com/andrewpozdnakov7-jpg/Dashchan-Library.git
-	branch = master

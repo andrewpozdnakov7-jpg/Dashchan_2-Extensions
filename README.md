@@ -2,25 +2,23 @@
 
 ## Русский
 
-Этот репозиторий содержит расширение Dvach для Dashchan_2.
+Этот репозиторий содержит расширения Dvach и Fourchan для Dashchan_2.
 
 Dashchan_2 использует отдельный package name и отдельный механизм обнаружения
-расширений, поэтому это расширение ставится отдельно от старых расширений
+расширений, поэтому эти расширения ставятся отдельно от старых расширений
 оригинального Dashchan.
 
 Контакт для связи: `dashchan_2@mail.ru`
 
-### Текущее расширение
+### Текущие расширения
 
-| Компонент | Значение |
-| --- | --- |
-| Название APK | `Dashchan_2 for 2ch` |
-| Package | `io.dashchan2.chan.dvach` |
-| Extension feature | `chan.extension.dashchan2` |
-| Java package | `com.mishiranu.dashchan.chan.dvach` |
-| Версия | `1.43-experimental-1.6-r11`, code `8` |
-| Минимальный Android | API 30 / Android 11+ |
-| Update metadata | `//raw.githubusercontent.com/andrewpozdnakov7-jpg/Dashchan_2/master/update/data.json` |
+| Компонент | Package | Версия | Возможности |
+| --- | --- | --- | --- |
+| Dvach | `io.dashchan2.chan.dvach` | `1.43-r12`, code `9` | Чтение и публикация |
+| Fourchan | `io.dashchan2.chan.fourchan` | `1.27-read-only-1`, code `1` | Только чтение |
+
+Оба расширения используют feature `chan.extension.dashchan2` и требуют
+API 30 / Android 11+.
 
 ### Что изменено
 
@@ -36,8 +34,8 @@ Dashchan_2 использует отдельный package name и отдель�
 - Устаревшие ветки активного captcha flow удалены.
 - Минимальная версия Android поднята до API 30 / Android 11+.
 - Сборка обновлена до Android Gradle Plugin 9.2.1 и Gradle 9.4.1.
-- В этом репозитории оставлено только расширение Dvach; остальные расширения
-  удалены из текущей ветки.
+- В репозиторий добавлено отдельное read-only расширение Fourchan для
+  просмотра разделов и тредов.
 - Добавлен домен `2ch.org` в locator и Android manifest hosts.
 - Добавлена разметка AI-сгенерированных постов для скрытия в Dashchan_2.
 - Gradle plugin DSL обновлен под современный assignment-синтаксис Gradle 9.
@@ -54,13 +52,16 @@ Dashchan_2 использует отдельный package name и отдель�
 Команда сборки:
 
 ```sh
-../tools/gradle-9.4.1/bin/gradle :extensions:dvach:assembleRelease
+../tools/gradle-9.4.1/bin/gradle \
+  :extensions:dvach:assembleRelease \
+  :extensions:fourchan:assembleRelease
 ```
 
 APK появится в:
 
 ```text
 extensions/dvach/build/outputs/apk/release
+extensions/fourchan/build/outputs/apk/release
 ```
 
 ### Подпись APK
@@ -78,35 +79,33 @@ key.password=%KEY_PASSWORD%
 
 ### Лицензия
 
-Исходники расширения основаны на Dashchan Extensions и включают изменения,
+Исходники расширений основаны на Dashchan Extensions и включают изменения,
 изученные и адаптированные из `TrixiEther/DashchanFork` /
 `TrixiEther/Dashchan-Library`.
 
-Расширение распространяется по лицензии
+Расширения распространяются по лицензии
 [GNU General Public License, version 3 or later](COPYING).
 
 ---
 
 ## English
 
-This repository contains the Dvach extension for Dashchan_2.
+This repository contains the Dvach and Fourchan extensions for Dashchan_2.
 
 Dashchan_2 uses its own package name and extension-discovery path, so this
-extension is installed separately from the old original Dashchan extensions.
+extensions are installed separately from the old original Dashchan extensions.
 
 Contact: `dashchan_2@mail.ru`
 
-### Current Extension
+### Current Extensions
 
-| Component | Value |
-| --- | --- |
-| APK label | `Dashchan_2 for 2ch` |
-| Package | `io.dashchan2.chan.dvach` |
-| Extension feature | `chan.extension.dashchan2` |
-| Java package | `com.mishiranu.dashchan.chan.dvach` |
-| Version | `1.43-experimental-1.6-r11`, code `8` |
-| Minimum Android | API 30 / Android 11+ |
-| Update metadata | `//raw.githubusercontent.com/andrewpozdnakov7-jpg/Dashchan_2/master/update/data.json` |
+| Component | Package | Version | Capabilities |
+| --- | --- | --- | --- |
+| Dvach | `io.dashchan2.chan.dvach` | `1.43-r12`, code `9` | Reading and posting |
+| Fourchan | `io.dashchan2.chan.fourchan` | `1.27-read-only-1`, code `1` | Read-only |
+
+Both extensions use the `chan.extension.dashchan2` feature and require
+API 30 / Android 11+.
 
 ### Changes
 
@@ -123,8 +122,8 @@ Contact: `dashchan_2@mail.ru`
 - Removed stale branches from the active captcha flow.
 - Raised the minimum Android version to API 30 / Android 11+.
 - Updated the build stack to Android Gradle Plugin 9.2.1 and Gradle 9.4.1.
-- Kept only the Dvach extension in this repository branch; other extensions
-  were removed from the current branch.
+- Added a separate read-only Fourchan extension for browsing boards and
+  threads.
 - Added the `2ch.org` domain to the locator and Android manifest hosts.
 - Added AI-generated post marking for hiding in Dashchan_2.
 - Updated the Gradle plugin DSL to the modern Gradle 9 assignment syntax.
@@ -141,13 +140,16 @@ Requirements:
 Build command:
 
 ```sh
-../tools/gradle-9.4.1/bin/gradle :extensions:dvach:assembleRelease
+../tools/gradle-9.4.1/bin/gradle \
+  :extensions:dvach:assembleRelease \
+  :extensions:fourchan:assembleRelease
 ```
 
 The APK will be written to:
 
 ```text
 extensions/dvach/build/outputs/apk/release
+extensions/fourchan/build/outputs/apk/release
 ```
 
 ### APK Signing
@@ -169,5 +171,5 @@ The extension sources are based on Dashchan Extensions and include changes
 studied and adapted from `TrixiEther/DashchanFork` /
 `TrixiEther/Dashchan-Library`.
 
-The extension is available under the
+The extensions are available under the
 [GNU General Public License, version 3 or later](COPYING).

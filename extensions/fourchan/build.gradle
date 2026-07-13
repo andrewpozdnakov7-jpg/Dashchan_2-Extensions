@@ -1,0 +1,21 @@
+apply plugin: 'chan-extension'
+
+chan {
+	packageName 'io.dashchan2.chan.fourchan'
+	classPackageName 'com.mishiranu.dashchan.chan.fourchan'
+	applicationId 'io.dashchan2.chan.fourchan'
+	versionName '1.27-read-only-1'
+	versionCode 1
+	apiVersion 1
+	featureName 'chan.extension.dashchan2'
+	applicationLabel 'Dashchan_2 Fourchan'
+	uriHandlerLabel 'Dashchan_2'
+	hosts '4chan.org', 'www.4chan.org', 'boards.4chan.org', 'sys.4chan.org',
+			'4channel.org', 'www.4channel.org', 'boards.4channel.org', 'sys.4channel.org',
+			'a.4cdn.org', 'i.4cdn.org', 's.4cdn.org', 'is.4chan.org', 'is2.4chan.org',
+			'find.4chan.org'
+}
+
+dependencies {
+	implementation 'chan.library:template-parser:0'
+}

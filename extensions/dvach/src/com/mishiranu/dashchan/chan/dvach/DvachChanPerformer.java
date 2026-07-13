@@ -1128,6 +1128,8 @@ public class DvachChanPerformer extends ChanPerformer {
 			}
 			case 11: {
 				errorType = ApiException.SEND_ERROR_FILE_NOT_SUPPORTED;
+				reason = DvachChanConfiguration.get(this).getResources()
+						.getString(R.string.posting_file_not_supported);
 				break;
 			}
 			case 12: {

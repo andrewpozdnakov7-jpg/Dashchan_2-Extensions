@@ -1,0 +1,18 @@
+buildscript {
+	repositories {
+		google()
+		mavenCentral()
+	}
+
+	dependencies {
+		classpath 'com.android.tools.build:gradle:9.2.1'
+		classpath 'chan.library:plugins:0'
+	}
+}
+
+allprojects {
+	repositories {
+		google()
+		mavenCentral()
+	}
+}
